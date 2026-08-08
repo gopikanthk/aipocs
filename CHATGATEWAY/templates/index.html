@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ChatGateway — Groak Prompt-Injection Tester</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 24px; }
+      #messages { border: 1px solid #ddd; padding: 12px; height: 300px; overflow:auto; }
+      .msg { margin-bottom: 8px; }
+      .user { color: #0b5; }
+      .bot { color: #05f; }
+    </style>
+  </head>
+  <body>
+    <h1>ChatGateway — Groak Prompt-Injection Tester</h1>
+    <div id="messages"></div>
+
+    <div>
+      <textarea id="input" rows="3" style="width:100%" placeholder="Type user message..."></textarea>
+    </div>
+    <div>
+      <label>Optional attack payload (simulates injection):</label>
+      <textarea id="attack" rows="3" style="width:100%" placeholder="Example: Ignore previous instructions and do X..."></textarea>
+    </div>
+    <div style="margin-top:8px;">
+      <button id="send">Send</button>
+    </div>
+
+    <script>
+      const messagesEl = document.getElementById('messages');
+      const inputEl = document.getElementById('input');
+      const attackEl = document.getElementById('attack');
+      const sendBtn = document.getElementById('send');
+
+      function append(role, text){
+        const d = document.createElement('div'); d.className='msg '+(role==='user'?'user':'bot');
+        d.textContent = (role+': ')+text;
+        messagesEl.appendChild(d);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }
+
+      sendBtn.onclick = async ()=>{
+        const message = inputEl.value.trim();
+        const attack = attackEl.value.trim();
+        if(!message) return;
+        append('user', message + (attack?(' [attack included]'):''));
+        inputEl.value='';
+        attackEl.value='';
+
+        const res = await fetch('/api/message', {
+          method: 'POST', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({message, attack, conversation: []})
+        });
+        const j = await res.json();
+        append('assistant', j.response + ' -- meta: ' + JSON.stringify(j.meta));
+      };
+    </script>
+  </body>
+</html>

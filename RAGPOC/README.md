@@ -203,3 +203,5 @@ A detailed blog-style write-up covering the objective, problem statement, RAG so
 ## Notes
 
 This project is intentionally designed for learning and readability. It does not aim to be a production-grade RAG system, but it covers the core concepts that matter most when learning how retrieval and generation work together.
+
+
