@@ -8,12 +8,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from dotenv import load_dotenv
+import os
 
-try:
-    from dotenv import load_dotenv
-except ImportError:  # pragma: no cover - optional dependency
-    def load_dotenv() -> bool:
-        return False
 
 load_dotenv()
 
@@ -34,17 +31,17 @@ class Settings:
 
 def get_settings() -> Settings:
     """Load settings from environment variables and validate essential values."""
-    import os
+    
 
-    llm_api_key = os.getenv("LLM_API_KEY", "").strip()
-    llm_model = os.getenv("LLM_MODEL", "llama-3.1-8b-instant").strip()
-    llm_base_url = os.getenv("LLM_BASE_URL", "https://api.groq.com/openai/v1").strip()
-    embedding_api_key = os.getenv("EMBEDDING_API_KEY", "").strip()
-    embedding_model = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small").strip()
-    chroma_db_path = Path(os.getenv("CHROMA_DB_PATH", "vector_db")).resolve()
-    collection_name = os.getenv("COLLECTION_NAME", "documents").strip()
+    llm_api_key = os.getenv("LLM_API_KEY").strip()
+    llm_model = os.getenv("LLM_MODEL").strip()
+    llm_base_url = os.getenv("LLM_BASE_URL").strip()
+    embedding_api_key = os.getenv("EMBEDDING_API_KEY").strip()
+    embedding_model = os.getenv("EMBEDDING_MODEL").strip()
+    chroma_db_path = Path(os.getenv("CHROMA_DB_PATH")).resolve()
+    collection_name = os.getenv("COLLECTION_NAME").strip()
 
-    top_k_raw = os.getenv("TOP_K", "3").strip()
+    top_k_raw = os.getenv("TOP_K").strip()
     try:
         top_k = int(top_k_raw)
     except ValueError as exc:

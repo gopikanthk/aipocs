@@ -12,39 +12,68 @@ from app.embeddings import generate_embedding
 from app.llm import generate_answer
 from app.prompts import build_prompt
 from app.vectordb import search_similar_chunks
+from langfuse import get_client
 
+langfuse = get_client()
 
 def ask_question(question: str) -> None:
     """Run the retrieval and generation flow for a single question."""
-    print("Loading vector database...")
-    question_embedding = generate_embedding(question)
+    print("Loading vector database1...")
+    with  langfuse.start_as_current_observation(
+        as_type="span",
+        name="rag-request"
+    ) as root:
 
-    print("Searching...")
-    results = search_similar_chunks(question_embedding, limit=settings.top_k)
+        root.update(input={"question": question})
 
-    if not results:
-        print("No relevant information found in the uploaded document.")
-        return
+        print("Loading vector database.2..")
+        question_embedding = generate_embedding(question)
 
-    context = "\n\n".join(
-        f"Source: {item['metadata'].get('filename', 'unknown')} | "
-        f"Page {item['metadata'].get('page_number', 'unknown')}\n"
-        f"{item['text']}"
-        for item in results
-    )
+        print("Searching...")
+        results = search_similar_chunks(question_embedding, limit=settings.top_k)
 
-    print("Calling OpenRouter...")
-    prompt = build_prompt(context=context, question=question)
-    answer = generate_answer(prompt)
+        if not results:
+            print("No relevant information found in the uploaded document.")
+            return
 
-    print("\nAnswer")
-    print(answer)
-    print("\nSources")
-    for item in results:
-        metadata = item["metadata"]
-        print(f"{metadata.get('filename', 'unknown')}")
-        print(f"Page {metadata.get('page_number', 'unknown')}")
-        print(f"Similarity {item['score']:.2f}")
+        context = "\n\n".join(
+            f"Source: {item['metadata'].get('filename', 'unknown')} | "
+            f"Page {item['metadata'].get('page_number', 'unknown')}\n"
+            f"{item['text']}"
+            for item in results
+        )
+
+        print("Calling OpenRouter...")
+        prompt = build_prompt(context=context, question=question)
+        answer = generate_answer(prompt)
+
+
+        # Generation step
+        with  langfuse.start_as_current_observation(
+            as_type="generation",
+            name="answer-generation",
+            model="your-model-name"
+        ) as generation:
+            
+            generation.update(
+                    input={
+                        "question": question,
+                        "context": context
+                    },
+                    output=answer
+                )
+
+            root.update(output={"answer": answer})
+
+
+            print("\nAnswer")
+            print(answer)
+            print("\nSources")
+            for item in results:
+                metadata = item["metadata"]
+                print(f"{metadata.get('filename', 'unknown')}")
+                print(f"Page {metadata.get('page_number', 'unknown')}")
+                print(f"Similarity {item['score']:.2f}")
 
 
 if __name__ == "__main__":

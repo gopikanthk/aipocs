@@ -8,3 +8,4 @@ tiktoken>=0.7.0,<1.0.0
 pydantic>=2.0.0,<3.0.0
 pydantic-ai
 sentence-transformers>=3.0.0,<4.0.0
+langfuse>=5.2.0,<5.2.1

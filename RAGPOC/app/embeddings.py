@@ -38,6 +38,7 @@ def generate_embedding(text: str, model: str | None = None, force_local: bool = 
     """Create a local embedding for a single text string using SentenceTransformer when possible."""
     model_name = model or settings.embedding_model
 
+    """
     if not force_local:
         try:
             from openai import OpenAI
@@ -54,13 +55,14 @@ def generate_embedding(text: str, model: str | None = None, force_local: bool = 
             return list(embedding)
         except Exception:
             pass
-
-    try:
+            """
+    """try:
         model = _get_local_sentence_model(model_name)
         embedding = model.encode(text, convert_to_numpy=False)
         return [float(value) for value in embedding]
-    except Exception:
-        return _fallback_embedding(text)
+    except Exception:"""
+    
+    return _fallback_embedding(text)
 
 
 def generate_embeddings_for_chunks(chunks: List[dict[str, Any]]) -> List[List[float]]:
